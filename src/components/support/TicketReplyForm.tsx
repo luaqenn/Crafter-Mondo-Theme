@@ -12,6 +12,23 @@ interface TicketReplyFormProps {
 // Lexical için boş serialized state
 const EMPTY_EDITOR_STATE = { root: { children: [], direction: null, format: "", indent: 0, type: "root", version: 1 } };
 
+// Lexical editör serialized state'i boş mu kontrolü
+function isEditorStateEmpty(state: SerializedEditorState) {
+  if (!state || !state.root || !Array.isArray(state.root.children)) return true;
+  return (
+    state.root.children.length === 0 ||
+    state.root.children.every(
+      (child: any) =>
+        (child.type === "paragraph" && (!child.children || child.children.length === 0)) ||
+        (child.type === "paragraph" &&
+          child.children.every(
+            (grandchild: any) =>
+              grandchild.type === "text" && (!grandchild.text || grandchild.text.trim() === "")
+          ))
+    )
+  );
+}
+
 export default function TicketReplyForm({ onSend, loading, initialValue }: TicketReplyFormProps) {
   const [message, setMessage] = useState<SerializedEditorState | any>(initialValue || EMPTY_EDITOR_STATE);
 
@@ -21,6 +38,7 @@ export default function TicketReplyForm({ onSend, loading, initialValue }: Ticke
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEditorStateEmpty(message)) return;
     onSend(message);
     setMessage(EMPTY_EDITOR_STATE);
   };
@@ -33,7 +51,7 @@ export default function TicketReplyForm({ onSend, loading, initialValue }: Ticke
       />
       <Button
         type="submit"
-        disabled={loading || !message}
+        disabled={loading || isEditorStateEmpty(message)}
         className="self-end bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-xl shadow"
       >
         Gönder

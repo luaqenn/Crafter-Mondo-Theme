@@ -27,6 +27,23 @@ const EMPTY_EDITOR_STATE: SerializedEditorState = {
   },
 };
 
+// Lexical editör serialized state'i boş mu kontrolü
+function isEditorStateEmpty(state: SerializedEditorState) {
+  if (!state || !state.root || !Array.isArray(state.root.children)) return true;
+  return (
+    state.root.children.length === 0 ||
+    state.root.children.every(
+      (child: any) =>
+        (child.type === "paragraph" && (!child.children || child.children.length === 0)) ||
+        (child.type === "paragraph" &&
+          child.children.every(
+            (grandchild: any) =>
+              grandchild.type === "text" && (!grandchild.text || grandchild.text.trim() === "")
+          ))
+    )
+  );
+}
+
 export default function TicketDetailPage() {
   const params = useParams<{ ticket_id: string }>();
   const router = useRouter();
@@ -75,7 +92,7 @@ export default function TicketDetailPage() {
 
   // Handle send for reply
   const handleSend = async (content: SerializedEditorState) => {
-    if (!ticket) return;
+    if (!ticket || isEditorStateEmpty(content)) return;
     setSending(true);
     try {
       await replyToTicket({ ticketId: ticket.id, reply: { message: content } });
@@ -89,7 +106,7 @@ export default function TicketDetailPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError("");
-    if (!categoryId || !title || !message || !user) {
+    if (!categoryId || !title || isEditorStateEmpty(message) || !user) {
       setCreateError("Lütfen tüm alanları doldurun.");
       return;
     }

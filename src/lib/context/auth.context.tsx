@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useEffect, useState } from "react";
-import { SignUpRequest, useAuthService } from "@/lib/services/auth.service";
+import { SignUpRequest, ForgotPasswordRequest, ResetPasswordRequest, useAuthService } from "@/lib/services/auth.service";
 import { User } from "@/lib/types/user";
 import Loading from "@/components/loading";
 
@@ -12,6 +12,8 @@ export const AuthContext = createContext<{
   setUser: (user: User | null) => void;
   signIn: (username: string, password: string, turnstileToken?: string) => Promise<void>;
   signUp: (data: SignUpRequest) => Promise<void>;
+  forgotPassword: (data: ForgotPasswordRequest) => Promise<void>;
+  resetPassword: (data: ResetPasswordRequest) => Promise<void>;
   signOut: () => Promise<void>;
   reloadUser: () => Promise<void>;
 }>({
@@ -20,13 +22,15 @@ export const AuthContext = createContext<{
   isAuthenticated: false,
   signIn: () => Promise.resolve(),
   signUp: () => Promise.resolve(),
+  forgotPassword: () => Promise.resolve(),
+  resetPassword: () => Promise.resolve(),
   signOut: () => Promise.resolve(),
   setUser: () => { },
   reloadUser: () => Promise.resolve(),
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { getMe, signIn: signInService, signUp: signUpService } = useAuthService();
+  const { getMe, signIn: signInService, signUp: signUpService, forgotPassword: forgotPasswordService, resetPassword: resetPasswordService } = useAuthService();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -84,6 +88,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const forgotPassword = async (data: ForgotPasswordRequest) => {
+    setIsLoading(true);
+    try {
+      await forgotPasswordService(data);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPassword = async (data: ResetPasswordRequest) => {
+    setIsLoading(true);
+    try {
+      await resetPasswordService(data);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const signOut = async () => {
     setIsLoading(true);
     try {
@@ -113,5 +139,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return <Loading show={true} message="Yükleniyor..." fullScreen={true} />;
   }
 
-  return <AuthContext.Provider value={{ user, setUser, isLoading, isAuthenticated, signIn, signUp, signOut, reloadUser }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, setUser, isLoading, isAuthenticated, signIn, signUp, forgotPassword, resetPassword, signOut, reloadUser }}>{children}</AuthContext.Provider>;
 };

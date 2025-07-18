@@ -26,6 +26,27 @@ export interface SignUpResponse {
     refreshToken: string;
 }
 
+export interface ForgotPasswordRequest {
+    email: string;
+    turnstileToken?: string;
+}
+
+export interface ForgotPasswordResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface ResetPasswordRequest {
+    token: string;
+    new_password: string;
+    confirm_password: string;
+}
+
+export interface ResetPasswordResponse {
+    success: boolean;
+    message: string;
+}
+
 export const useAuthService = () => {
     const { post, get } = useApi({ baseUrl: BACKEND_URL_WITH_WEBSITE_ID });
 
@@ -39,6 +60,16 @@ export const useAuthService = () => {
         return response.data;
     };
 
+    const forgotPassword = async (data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
+        const response = await post<ForgotPasswordResponse>('/auth/forgot-password', data);
+        return response.data;
+    };
+
+    const resetPassword = async (data: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
+        const response = await post<ResetPasswordResponse>('/auth/reset-password', data);
+        return response.data;
+    };
+
     const getMe = async (): Promise<User> => {
         const response = await get<User>('/users/me', {}, true);
         return response.data;
@@ -47,6 +78,8 @@ export const useAuthService = () => {
     return {
         signIn,
         signUp,
+        forgotPassword,
+        resetPassword,
         getMe
     };
-}; 
+};

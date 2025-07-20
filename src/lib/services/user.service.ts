@@ -21,11 +21,8 @@ export const useUserService = () => {
     const updateUser = async (
         userId: string,
         update: {
-            username: string;
             email: string;
             password?: string;
-            role?: string;
-            balance?: number;
         }
     ): Promise<User> => {
         const response = await put<User>(`/users/${userId}`, update);
@@ -71,6 +68,18 @@ export const useUserService = () => {
         return response.data;
     };
 
+    // Şifre değiştir
+    const changePassword = async (
+        userId: string,
+        data: {
+            currentPassword: string;
+            newPassword: string;
+        }
+    ): Promise<User> => {
+        const response = await post<User>(`/users/${userId}/change-password`, data);
+        return response.data;
+    };
+
     return {
         getUsers,
         getUserById,
@@ -81,6 +90,7 @@ export const useUserService = () => {
         unbanUser,
         getWallMessages,
         sendWallMessage,
-        replyWallMessage
+        replyWallMessage,
+        changePassword
     };
 }; 

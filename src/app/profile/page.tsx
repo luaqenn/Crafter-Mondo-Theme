@@ -19,9 +19,11 @@ import Swal from "sweetalert2";
 import Loading from "@/components/loading";
 import NotFound from "@/components/not-found";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const ProfilePage = () => {
-    const { user: authUser } = useContext(AuthContext);
+    const router = useRouter();
+    const { user: authUser, isAuthenticated, isLoading } = useContext(AuthContext);
     const { website } = useContext(WebsiteContext);
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -32,8 +34,12 @@ const ProfilePage = () => {
     const userService = useUserService();
 
     useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push("/auth/sign-in?return=/profile");
+            return;
+        }
+        if (!authUser || !websiteId) return;
         const fetchUser = async () => {
-            if (!authUser || !websiteId) return;
             try {
                 const fetched = await userService.getUserById(authUser.id);
                 setUser(fetched);
@@ -44,8 +50,12 @@ const ProfilePage = () => {
             }
         };
         fetchUser();
-    }, [authUser, websiteId]);
+    }, [authUser, websiteId, isAuthenticated, isLoading, router]);
 
+    if (isLoading) return (
+        <Loading show={true} message="Kullanıcı yükleniyor.."/>
+    );
+    if (!isAuthenticated) return null;
     if (loading) return (
         <Loading show={true} message="Kullanıcı yükleniyor.."/>
     );

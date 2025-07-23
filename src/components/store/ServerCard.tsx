@@ -11,8 +11,10 @@ import {
 
 export default function ServerCard({
   server,
+  statusLoading = false,
 }: {
   server: { id: string; name: string; image: string; playerCount?: number; isOnline?: boolean };
+  statusLoading?: boolean;
 }) {
   const router = useRouter();
 
@@ -32,31 +34,6 @@ export default function ServerCard({
       <CardContent className="p-0">
         {/* Header with Status Badge */}
         <div className="relative">
-          {/* Online Status Badge */}
-          <div className="absolute top-3 left-3 z-10">
-            <Badge 
-              variant={server.isOnline !== false ? "default" : "secondary"} 
-              className={`flex items-center gap-1 ${
-                server.isOnline !== false 
-                  ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white' 
-                  : 'bg-gray-500 dark:bg-gray-700 text-white'
-              }`}
-            >
-              <Server className="h-3 w-3" />
-              {server.isOnline !== false ? 'Online' : 'Offline'}
-            </Badge>
-          </div>
-
-          {/* Player Count Badge */}
-          {server.playerCount !== undefined && (
-            <div className="absolute top-3 right-3 z-10">
-              <Badge variant="outline" className="bg-white/90 dark:bg-gray-900/80 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600">
-                <Users className="h-3 w-3 mr-1" />
-                {server.playerCount}
-              </Badge>
-            </div>
-          )}
-
           {/* Server Image */}
           <div className="relative h-48 bg-gradient-to-br from-indigo-50 to-cyan-50 dark:from-indigo-900 dark:to-cyan-900 overflow-hidden">
             {server.image ? (
@@ -66,7 +43,9 @@ export default function ServerCard({
                 width={500}
                 height={300}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                priority
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
               />
             ) : (
               <div className="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 h-full">

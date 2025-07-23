@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AuthContext } from "@/lib/context/auth.context";
 import { useCart } from "@/lib/context/cart.context";
 import { useProductService } from "@/lib/services/product.service";
@@ -36,23 +37,29 @@ interface CartProduct extends Product {
 
 export default function CartPage() {
     const router = useRouter();
-    const { isAuthenticated, isLoading: authIsLoading, user } = useContext(AuthContext);
+    const { isAuthenticated, isLoading, user } = useContext(AuthContext);
     const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
     const { getProductById } = useProductService();
-    const { purchaseProduct, getCouponInfo } = useMarketplaceService();
+    const { purchaseProduct, getCouponInfo, getMarketplaceSettings } = useMarketplaceService();
 
     const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [couponCode, setCouponCode] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
+    const [bulkDiscount, setBulkDiscount] = useState<null | {
+      type: "percentage" | "fixed";
+      amount: number;
+      expireDate: string | null;
+      products: string[];
+    }>(null);
 
     // Auth kontrolü - eğer auth edilmemişse sign-in sayfasına yönlendir
     useEffect(() => {
-        if (!user && isAuthenticated) {
+        if (!isLoading && !isAuthenticated) {
             router.push("/auth/sign-in?return=/cart");
         }
-    }, [isAuthenticated, user, router]);
+    }, [isLoading, isAuthenticated, router]);
 
     // Cart ürünlerini yükle
     useEffect(() => {
@@ -88,6 +95,13 @@ export default function CartPage() {
 
         loadCartProducts();
     }, [cart]);
+
+    // Bulk discount'u çek
+    useEffect(() => {
+      getMarketplaceSettings().then((settings) => {
+        setBulkDiscount(settings.bulkDiscount || null);
+      });
+    }, []);
 
     // Kupon kodu uygula
     const applyCoupon = async () => {
@@ -180,12 +194,40 @@ export default function CartPage() {
         const originalPrice = Number(product.price) || 0;
         const discountValue = Number(product.discountValue);
         const validDiscountType = product.discountType === "percentage" || product.discountType === "fixed";
-        const hasDiscount = !isNaN(discountValue) && discountValue > 0 && validDiscountType;
-        const discountAmount =
+        const hasProductDiscount = !isNaN(discountValue) && discountValue > 0 && validDiscountType;
+        const productDiscountAmount =
             product.discountType === "percentage"
                 ? (originalPrice * discountValue) / 100
                 : discountValue;
-        const finalPrice = hasDiscount ? originalPrice - discountAmount : originalPrice;
+        const productDiscountedPrice = hasProductDiscount ? originalPrice - productDiscountAmount : originalPrice;
+
+        // Bulk discount hesaplama
+        let hasBulk = false;
+        let bulkDiscountAmount = 0;
+        let bulkDiscountedPrice = originalPrice;
+        if (
+            bulkDiscount &&
+            bulkDiscount.amount > 0 &&
+            (bulkDiscount.products.length === 0 || bulkDiscount.products.includes(product.id))
+        ) {
+            hasBulk = true;
+            if (bulkDiscount.type === "percentage") {
+                bulkDiscountAmount = (originalPrice * bulkDiscount.amount) / 100;
+            } else {
+                bulkDiscountAmount = bulkDiscount.amount;
+            }
+            bulkDiscountedPrice = originalPrice - bulkDiscountAmount;
+        }
+
+        // En iyi indirimi seç (en düşük fiyatı göster)
+        let finalPrice = originalPrice;
+        if (hasProductDiscount && hasBulk) {
+            finalPrice = bulkDiscountedPrice < productDiscountedPrice ? bulkDiscountedPrice : productDiscountedPrice;
+        } else if (hasBulk) {
+            finalPrice = bulkDiscountedPrice;
+        } else if (hasProductDiscount) {
+            finalPrice = productDiscountedPrice;
+        }
 
         // Kupon indirimi hesaplama (product_discount tipi için)
         let couponDiscount = 0;
@@ -368,12 +410,54 @@ export default function CartPage() {
                                         const originalPrice = Number(product.price) || 0;
                                         const discountValue = Number(product.discountValue);
                                         const validDiscountType = product.discountType === "percentage" || product.discountType === "fixed";
-                                        const hasDiscount = !isNaN(discountValue) && discountValue > 0 && validDiscountType;
-                                        const discountAmount =
+                                        const hasProductDiscount = !isNaN(discountValue) && discountValue > 0 && validDiscountType;
+                                        const productDiscountAmount =
                                             product.discountType === "percentage"
                                                 ? (originalPrice * discountValue) / 100
                                                 : discountValue;
-                                        const finalPrice = hasDiscount ? originalPrice - discountAmount : originalPrice;
+                                        const productDiscountedPrice = hasProductDiscount ? originalPrice - productDiscountAmount : originalPrice;
+
+                                        // Bulk discount hesaplama
+                                        let hasBulk = false;
+                                        let bulkDiscountAmount = 0;
+                                        let bulkDiscountedPrice = originalPrice;
+                                        if (
+                                            bulkDiscount &&
+                                            bulkDiscount.amount > 0 &&
+                                            (bulkDiscount.products.length === 0 || bulkDiscount.products.includes(product.id))
+                                        ) {
+                                            hasBulk = true;
+                                            if (bulkDiscount.type === "percentage") {
+                                                bulkDiscountAmount = (originalPrice * bulkDiscount.amount) / 100;
+                                            } else {
+                                                bulkDiscountAmount = bulkDiscount.amount;
+                                            }
+                                            bulkDiscountedPrice = originalPrice - bulkDiscountAmount;
+                                        }
+
+                                        // En iyi indirimi seç (en düşük fiyatı göster)
+                                        let finalPrice = originalPrice;
+                                        let showDiscountType: "product" | "bulk" | null = null;
+                                        let showDiscountAmount = 0;
+                                        if (hasProductDiscount && hasBulk) {
+                                            if (bulkDiscountedPrice < productDiscountedPrice) {
+                                                finalPrice = bulkDiscountedPrice;
+                                                showDiscountType = "bulk";
+                                                showDiscountAmount = bulkDiscountAmount;
+                                            } else {
+                                                finalPrice = productDiscountedPrice;
+                                                showDiscountType = "product";
+                                                showDiscountAmount = productDiscountAmount;
+                                            }
+                                        } else if (hasBulk) {
+                                            finalPrice = bulkDiscountedPrice;
+                                            showDiscountType = "bulk";
+                                            showDiscountAmount = bulkDiscountAmount;
+                                        } else if (hasProductDiscount) {
+                                            finalPrice = productDiscountedPrice;
+                                            showDiscountType = "product";
+                                            showDiscountAmount = productDiscountAmount;
+                                        }
 
                                         // Kupon indirimi hesaplama (product_discount tipi için)
                                         let couponDiscount = 0;
@@ -414,7 +498,9 @@ export default function CartPage() {
                                                 {/* Product Info */}
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="font-semibold text-gray-800 dark:text-gray-100 truncate">
-                                                        {product.name}
+                                                        <Link href={`/store/product/${product.id}`} className="hover:underline focus:underline">
+                                                            {product.name}
+                                                        </Link>
                                                     </h3>
                                                     <p className="text-sm text-gray-500 dark:text-gray-300 truncate">
                                                         {product.description}
@@ -422,23 +508,28 @@ export default function CartPage() {
 
                                                     {/* Price Display */}
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        {hasDiscount ? (
+                                                        {(showDiscountType && showDiscountAmount > 0) ? (
                                                             <>
                                                                 <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
                                                                     {originalPrice.toFixed(2)} ₺
                                                                 </span>
                                                                 <span className="font-semibold text-green-600 dark:text-green-400">
-                                                                    {finalPrice.toFixed(2)} ₺
+                                                                    {finalPrice <= 0 ? 'Ücretsiz' : `${finalPrice.toFixed(2)} ₺`}
                                                                 </span>
                                                                 <Badge className="bg-red-500 dark:bg-red-700 text-white text-xs">
-                                                                    {product.discountType === "percentage"
-                                                                        ? `%${discountValue}`
-                                                                        : `${discountAmount.toFixed(0)}₺`}
+                                                                    {showDiscountType === "bulk" && bulkDiscount
+                                                                        ? (bulkDiscount.type === "percentage"
+                                                                            ? `%${bulkDiscount.amount} İndirim`
+                                                                            : `${bulkDiscount.amount.toFixed(0)}₺ İndirim`)
+                                                                        : (product.discountType === "percentage"
+                                                                            ? `%${discountValue} İndirim`
+                                                                            : `${productDiscountAmount.toFixed(0)}₺ İndirim`)
+                                                                    }
                                                                 </Badge>
                                                             </>
                                                         ) : (
                                                             <span className="font-semibold text-gray-800 dark:text-gray-100">
-                                                                {originalPrice.toFixed(2)} ₺
+                                                                {originalPrice <= 0 ? 'Ücretsiz' : `${originalPrice.toFixed(2)} ₺`}
                                                             </span>
                                                         )}
 
@@ -446,10 +537,10 @@ export default function CartPage() {
                                                         {hasCouponDiscount && (
                                                             <>
                                                                 <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
-                                                                    {finalPrice.toFixed(2)} ₺
+                                                                    {finalPrice <= 0 ? 'Ücretsiz' : `${finalPrice.toFixed(2)} ₺`}
                                                                 </span>
                                                                 <span className="font-semibold text-blue-600 dark:text-blue-400">
-                                                                    {finalPriceWithCoupon.toFixed(2)} ₺
+                                                                    {finalPriceWithCoupon <= 0 ? 'Ücretsiz' : `${finalPriceWithCoupon.toFixed(2)} ₺`}
                                                                 </span>
                                                                 <Badge className="bg-blue-500 dark:bg-blue-700 text-white text-xs">
                                                                     {appliedCoupon?.discountType === "percentage"
@@ -487,7 +578,7 @@ export default function CartPage() {
                                                 {/* Total Price for this item */}
                                                 <div className="text-right min-w-[80px]">
                                                     <span className="font-semibold text-gray-800 dark:text-gray-100">
-                                                        {(finalPriceWithCoupon * product.quantity).toFixed(2)} ₺
+                                                        {(finalPriceWithCoupon * product.quantity) <= 0 ? 'Ücretsiz' : `${(finalPriceWithCoupon * product.quantity).toFixed(2)} ₺`}
                                                     </span>
                                                 </div>
 
@@ -595,7 +686,7 @@ export default function CartPage() {
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600 dark:text-gray-300">Ara Toplam</span>
-                                        <span className="font-medium">{subtotal.toFixed(2)} ₺</span>
+                                        <span className="font-medium">{subtotal <= 0 ? 'Ücretsiz' : `${subtotal.toFixed(2)} ₺`}</span>
                                     </div>
 
                                     {appliedCoupon && appliedCoupon.type === "cart_discount" && (
@@ -611,7 +702,7 @@ export default function CartPage() {
 
                                     <div className="flex justify-between text-lg font-semibold">
                                         <span className="text-gray-800 dark:text-gray-100">Toplam</span>
-                                        <span className="text-blue-600 dark:text-blue-400">{total.toFixed(2)} ₺</span>
+                                        <span className="text-blue-600 dark:text-blue-400">{total <= 0 ? 'Ücretsiz' : `${total.toFixed(2)} ₺`}</span>
                                     </div>
                                 </div>
 

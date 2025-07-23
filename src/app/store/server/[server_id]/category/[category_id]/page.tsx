@@ -24,9 +24,14 @@ import {
   Tag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Loading from "@/components/loading";
 import NotFound from "@/components/not-found";
 import ContentFooter from "@/components/store/ContentFooter";
+import { 
+  CategoryHeaderSkeleton, 
+  ProductGridSkeleton 
+} from "@/components/store/StoreSkeleton";
+import { ProgressiveLoader, ProductCardSkeletonItem } from "@/components/store/ProgressiveLoader";
+import { useCategoryPreload } from "@/components/store/StorePreloader";
 
 export default function CategoryPage({
   params,
@@ -43,6 +48,9 @@ export default function CategoryPage({
   const { getProductsByCategory } = useProductService();
   const { website } = useContext(WebsiteContext);
   const router = useRouter();
+  
+  // Preload category data
+  useCategoryPreload(category_id);
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -66,7 +74,26 @@ export default function CategoryPage({
   }, [category_id]);
 
   if (loading) {
-    return <Loading show={true} message="Kategori bilgileri yükleniyor..." />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <CategoryHeaderSkeleton />
+        
+        <Card className="shadow-lg">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <Package2 className="h-5 w-5" />
+                Ürünler
+              </CardTitle>
+            </div>
+            <Separator />
+          </CardHeader>
+          <CardContent className="p-6">
+            <ProductGridSkeleton count={12} />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (error || !category) {
@@ -179,12 +206,16 @@ export default function CategoryPage({
                 </p>
               </div>
             ) : (
-              // Products Grid
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {products?.map((product: Product) => (
+              // Products Grid with Progressive Loading
+              <ProgressiveLoader
+                items={products || []}
+                renderItem={(product: Product, index) => (
                   <ProductCard key={product.id} item={product} />
-                ))}
-              </div>
+                )}
+                skeletonComponent={ProductCardSkeletonItem}
+                itemsPerPage={8}
+                initialItems={10}
+              />
             )}
           </CardContent>
         </Card>

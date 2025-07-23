@@ -21,9 +21,14 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Loading from "@/components/loading";
 import NotFound from "@/components/not-found";
 import ContentFooter from "@/components/store/ContentFooter";
+import { 
+  ServerHeaderSkeleton, 
+  CategoryGridSkeleton 
+} from "@/components/store/StoreSkeleton";
+import { ProgressiveLoader, CategoryCardSkeletonItem } from "@/components/store/ProgressiveLoader";
+import { useServerPreload } from "@/components/store/StorePreloader";
 
 export default function ServerPage({
   params,
@@ -43,6 +48,9 @@ export default function ServerPage({
   const { getCategories } = useCategoryService();
   const { website } = useContext(WebsiteContext);
   const router = useRouter();
+  
+  // Preload server data
+  useServerPreload(server_id);
 
   useEffect(() => {
     const fetchServer = async () => {
@@ -69,7 +77,26 @@ export default function ServerPage({
   }, [server_id]);
 
   if (loading) {
-    return <Loading show={true} message="Sunucu bilgileri yükleniyor..." />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <ServerHeaderSkeleton />
+        
+        <Card className="shadow-lg">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Kategoriler
+              </CardTitle>
+            </div>
+            <Separator />
+          </CardHeader>
+          <CardContent className="p-6">
+            <CategoryGridSkeleton count={8} />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (error || !server) {
@@ -181,9 +208,10 @@ export default function ServerPage({
                 </p>
               </div>
             ) : (
-              // Categories Grid
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {serverCategories?.map((category: Category) => (
+              // Categories Grid with Progressive Loading
+              <ProgressiveLoader
+                items={serverCategories || []}
+                renderItem={(category: Category, index) => (
                   <CategoryCard
                     key={category.id}
                     category={{
@@ -192,8 +220,11 @@ export default function ServerPage({
                       image: category.image || "/images/default-category.png",
                     }}
                   />
-                ))}
-              </div>
+                )}
+                skeletonComponent={CategoryCardSkeletonItem}
+                itemsPerPage={6}
+                initialItems={6}
+              />
             )}
           </CardContent>
         </Card>

@@ -62,6 +62,7 @@ export default function CategoryCard({
                 src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${category.image}`}
                 alt={category.name}
                 className="max-w-full max-h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-500 rounded-lg"
+                loading="lazy"
               />
             ) : (
               <div className="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">

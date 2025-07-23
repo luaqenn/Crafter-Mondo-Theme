@@ -13,6 +13,15 @@ export type Coupon = {
   "isActive": boolean,
 }
 
+export type MarketplaceSettings = {
+  bulkDiscount: {
+    type: "percentage" | "fixed";
+    amount: number;
+    expireDate: string | null;
+    products: string[];
+  } | null;
+};
+
 export const useMarketplaceService = () => {
   const { post, get } = useApi({ baseUrl: BACKEND_URL_WITH_WEBSITE_ID });
 
@@ -33,8 +42,14 @@ export const useMarketplaceService = () => {
     return response.data;
   };
 
+  const getMarketplaceSettings = async (): Promise<MarketplaceSettings> => {
+    const response = await get<MarketplaceSettings>(`/config/marketplace`, {}, true);
+    return response.data;
+  };
+
   return {
     purchaseProduct,
     getCouponInfo,
+    getMarketplaceSettings,
   };
 };

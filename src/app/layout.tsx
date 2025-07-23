@@ -11,6 +11,7 @@ import type { AppConfig } from "@/lib/types/app";
 import { CartProvider } from "@/lib/context/cart.context";
 import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
 import { getAppConfigDirect } from "@/lib/services/app-config.service";
+import { StorePreloadManager } from "@/components/store/StorePreloadManager";
 
 async function getAppConfig(): Promise<AppConfig> {
   if (typeof window === "undefined") {
@@ -18,27 +19,15 @@ async function getAppConfig(): Promise<AppConfig> {
     return getAppConfigDirect();
   }
   try {
-    const fetchOptions: any = {};
+    const fetchOptions: any = {
+      cache: 'no-store'
+    };
     
     console.log('🔍 getAppConfig called, NODE_ENV:', process.env.NODE_ENV);
     
-    // Development'da cache'i devre dışı bırak, production'da cache kullan
-    if (process.env.NODE_ENV === 'development') {
-      fetchOptions.cache = 'no-store';
-      console.log('🔍 Development mode - cache disabled');
-    } else {
-      fetchOptions.next = {
-        revalidate: 3600,
-        tags: ["app-config"],
-      };
-      console.log('🔍 Production mode - cache enabled with revalidate');
-    }
-    
     // Server-side fetch için absolute URL gerekli
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const url = process.env.NODE_ENV === 'production' 
-      ? `${baseUrl}/api/app-config?t=${Date.now()}`
-      : `${baseUrl}/api/app-config`;
+    const url = `${baseUrl}/api/app-config`;
     
     console.log('🔍 Fetching URL:', url);
     console.log('🔍 Fetch options:', fetchOptions);
@@ -219,6 +208,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
                   <MainLayout>{children}</MainLayout>
                   <PWAInstaller />
+                  <StorePreloadManager />
 
                 </CartProvider>
               </AuthProvider>

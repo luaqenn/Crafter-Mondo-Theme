@@ -1,7 +1,7 @@
 import { Product } from "@/lib/types/product";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthContext } from "@/lib/context/auth.context";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import withReactContent from "sweetalert2-react-content";
 import Swal from "sweetalert2";
 import { useMarketplaceService } from "@/lib/services/marketplace.service";
@@ -20,9 +20,21 @@ import { Button } from "../ui/button";
 export default function ProductCard({ item }: { item: Product }) {
   const router = useRouter();
   const { isAuthenticated } = useContext(AuthContext);
-  const { purchaseProduct } = useMarketplaceService();
+  const { purchaseProduct, getMarketplaceSettings } = useMarketplaceService();
   const { addToCart } = useCart();
   const [addedToCart, setAddedToCart] = useState(false);
+  const [bulkDiscount, setBulkDiscount] = useState<null | {
+    type: "percentage" | "fixed";
+    amount: number;
+    expireDate: string | null;
+    products: string[];
+  }>(null);
+
+  useEffect(() => {
+    getMarketplaceSettings().then((settings) => {
+      setBulkDiscount(settings.bulkDiscount || null);
+    });
+  }, []);
 
   if (!item || !item.id || !item.name) {
     return null;
@@ -32,12 +44,54 @@ export default function ProductCard({ item }: { item: Product }) {
   const originalPrice = Number(item.price) || 0;
   const discountValue = Number(item.discountValue);
   const validDiscountType = item.discountType === "percentage" || item.discountType === "fixed";
-  const hasDiscount = !isNaN(discountValue) && discountValue > 0 && validDiscountType;
-  const discountAmount =
+  const hasProductDiscount = !isNaN(discountValue) && discountValue > 0 && validDiscountType;
+  const productDiscountAmount =
     item.discountType === "percentage"
       ? (originalPrice * discountValue) / 100
       : discountValue;
-  const finalPrice = hasDiscount ? originalPrice - discountAmount : originalPrice;
+  const productDiscountedPrice = hasProductDiscount ? originalPrice - productDiscountAmount : originalPrice;
+
+  // Bulk discount hesaplama
+  let hasBulkDiscount = false;
+  let bulkDiscountAmount = 0;
+  let bulkDiscountedPrice = originalPrice;
+  if (
+    bulkDiscount &&
+    bulkDiscount.amount > 0 &&
+    (bulkDiscount.products.length === 0 || bulkDiscount.products.includes(item.id))
+  ) {
+    hasBulkDiscount = true;
+    if (bulkDiscount.type === "percentage") {
+      bulkDiscountAmount = (originalPrice * bulkDiscount.amount) / 100;
+    } else {
+      bulkDiscountAmount = bulkDiscount.amount;
+    }
+    bulkDiscountedPrice = originalPrice - bulkDiscountAmount;
+  }
+
+  // En iyi indirimi seç (en düşük fiyatı göster)
+  let finalPrice = originalPrice;
+  let showDiscountType: "product" | "bulk" | null = null;
+  let showDiscountAmount = 0;
+  if (hasProductDiscount && hasBulkDiscount) {
+    if (bulkDiscountedPrice < productDiscountedPrice) {
+      finalPrice = bulkDiscountedPrice;
+      showDiscountType = "bulk";
+      showDiscountAmount = bulkDiscountAmount;
+    } else {
+      finalPrice = productDiscountedPrice;
+      showDiscountType = "product";
+      showDiscountAmount = productDiscountAmount;
+    }
+  } else if (hasBulkDiscount) {
+    finalPrice = bulkDiscountedPrice;
+    showDiscountType = "bulk";
+    showDiscountAmount = bulkDiscountAmount;
+  } else if (hasProductDiscount) {
+    finalPrice = productDiscountedPrice;
+    showDiscountType = "product";
+    showDiscountAmount = productDiscountAmount;
+  }
 
   const handleClick = () => {
     router.push(`/store/product/${item.id}`);
@@ -124,6 +178,7 @@ export default function ProductCard({ item }: { item: Product }) {
                 src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.image}`}
                 alt={item.name}
                 className="w-full h-full object-contain p-4 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
               />
             ) : (
               <div className="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 h-full w-full">
@@ -160,12 +215,17 @@ export default function ProductCard({ item }: { item: Product }) {
           </div>
 
           {/* Discount Badge - Top right */}
-          {hasDiscount && (
+          {(showDiscountType && showDiscountAmount > 0) && (
             <div className="absolute top-2 right-2 z-10">
               <Badge className="bg-red-500 dark:bg-red-700 text-white text-xs font-medium px-2 py-1 shadow-lg whitespace-nowrap">
-                {item.discountType === "percentage"
-                  ? `%${discountValue}`
-                  : `${discountAmount.toFixed(0)}₺`}
+                {bulkDiscount && showDiscountType === "bulk"
+                  ? (bulkDiscount.type === "percentage"
+                      ? `%${bulkDiscount.amount} İndirim`
+                      : `${bulkDiscount.amount.toFixed(0)}₺ İndirim`)
+                  : (item.discountType === "percentage"
+                      ? `%${discountValue}`
+                      : `${productDiscountAmount.toFixed(0)}₺`)
+                }
               </Badge>
             </div>
           )}
@@ -182,20 +242,30 @@ export default function ProductCard({ item }: { item: Product }) {
 
           {/* Price Section - Consistent spacing */}
           <div className="flex flex-col items-center justify-center mb-4 min-h-[4rem]">
-            {hasDiscount ? (
+            {(showDiscountType && showDiscountAmount > 0) ? (
               <div className="flex flex-col items-center space-y-1">
                 <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
                   {originalPrice.toFixed(2)} ₺
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                    {finalPrice.toFixed(2)} ₺
+                    {finalPrice <= 0 ? 'Ücretsiz' : `${finalPrice.toFixed(2)} ₺`}
                   </span>
+                  <Badge className="bg-red-500 dark:bg-red-700 text-white text-xs font-medium px-2 py-1">
+                    {showDiscountType === "bulk" && bulkDiscount
+                      ? (bulkDiscount.type === "percentage"
+                          ? `%${bulkDiscount.amount} İndirim`
+                          : `${bulkDiscount.amount.toFixed(0)}₺ İndirim`)
+                      : (item.discountType === "percentage"
+                          ? `%${discountValue} İndirim`
+                          : `${productDiscountAmount.toFixed(0)}₺ İndirim`)
+                    }
+                  </Badge>
                 </div>
               </div>
             ) : (
               <span className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                {originalPrice.toFixed(2)} ₺
+                {finalPrice <= 0 ? 'Ücretsiz' : `${originalPrice.toFixed(2)} ₺`}
               </span>
             )}
           </div>
@@ -209,7 +279,7 @@ export default function ProductCard({ item }: { item: Product }) {
                 w-full h-10 transition-all duration-200 ease-in-out hover:scale-[1.02]
                 ${isOutOfStock
                   ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed"
-                  : hasDiscount
+                  : (hasProductDiscount || hasBulkDiscount)
                   ? "bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white"
                   : "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white"
                 }

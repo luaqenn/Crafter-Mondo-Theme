@@ -118,9 +118,9 @@ export default function Store() {
                 items={servers}
                 renderItem={(server: Server, index) => (
                   <ServerCard
-                    key={server.id}
+                    key={server.slug}
                     server={{
-                      id: server.id,
+                      id: server.slug,
                       name: server.name,
                       image: server.image || "/images/default-category.png",
                     }}

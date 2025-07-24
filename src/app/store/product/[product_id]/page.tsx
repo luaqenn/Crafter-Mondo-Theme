@@ -566,7 +566,7 @@ export default function ProductPage({
                   <Badge
                     variant="secondary"
                     className="cursor-pointer bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
-                    onClick={() => category && router.push(`/store/category/${category.id}`)}
+                    onClick={() => category && router.push(`/store/category/${category.slug}`)}
                   >
                     {category?.name || "Yükleniyor..."}
                   </Badge>

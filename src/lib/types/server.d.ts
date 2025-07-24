@@ -1,4 +1,5 @@
 export type Server = {
+  slug: string;
   id: string;
   name: string;
   ip: string;

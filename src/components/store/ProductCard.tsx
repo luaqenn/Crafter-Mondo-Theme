@@ -94,7 +94,7 @@ export default function ProductCard({ item }: { item: Product }) {
   }
 
   const handleClick = () => {
-    router.push(`/store/product/${item.id}`);
+    router.push(`/store/product/${item.slug}`);
   };
 
   const handleBuyClick = (e: React.MouseEvent) => {

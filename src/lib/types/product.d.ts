@@ -1,4 +1,5 @@
 export type Product = {
+  slug: Key | null | undefined;
   id: string;
   name: string;
   price: number;

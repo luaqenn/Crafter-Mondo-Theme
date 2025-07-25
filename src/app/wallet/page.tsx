@@ -213,12 +213,12 @@ export default function BalancePage() {
         return;
       }
 
-      // Phone number validation (basic Turkish mobile format)
-      const phoneRegex = /^05\d{9}$/;
+      // Phone number validation (international format)
+      const phoneRegex = /^\+?\d{8,20}$/;
       if (!phoneRegex.test(formData.phone)) {
         withReactContent(Swal).fire({
           title: "Geçersiz alan!",
-          text: "Lütfen başında 0 ile telefon numaranızı giriniz.",
+          text: "Lütfen geçerli bir telefon numarası giriniz.",
           icon: "error",
           showConfirmButton: true,
           confirmButtonText: "Tamamdır.",

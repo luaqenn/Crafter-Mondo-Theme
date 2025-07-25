@@ -59,7 +59,7 @@ export default function CategoryPage({
         setError(null);
 
         const categoryData = await getCategory(category_id);
-        const productsData = await getProductsByCategory(category_id);
+        const productsData = await getProductsByCategory(categoryData.id);
 
         setCategory(categoryData);
         setProducts(productsData);
@@ -210,7 +210,7 @@ export default function CategoryPage({
               <ProgressiveLoader
                 items={products || []}
                 renderItem={(product: Product, index) => (
-                  <ProductCard key={product.id} item={product} />
+                  <ProductCard key={product.slug} item={product} />
                 )}
                 skeletonComponent={ProductCardSkeletonItem}
                 itemsPerPage={8}

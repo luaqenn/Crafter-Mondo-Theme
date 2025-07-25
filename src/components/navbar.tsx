@@ -15,6 +15,7 @@ import {
   BoxIcon,
   Ticket,
   UserIcon,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -96,6 +97,7 @@ export function Navbar() {
 
   const navigationItems = [
     { href: "/", icon: Home, label: "Anasayfa" },
+    { href: "/wallet", icon: CreditCard, label: "Kredi Yükle" },
     { href: "/store", icon: ShoppingCart, label: "Mağaza" },
     { href: "/redeem", icon: Ticket, label: "Kod Kullan" },
     { href: "/forum", icon: MessageSquare, label: "Forum" },
@@ -248,7 +250,7 @@ export function Navbar() {
           </div>
 
           {/* Center Navigation - Desktop */}
-          <div className="hidden lg:flex items-center justify-center flex-1 space-x-4">
+          <div className="hidden lg:flex items-center justify-between flex-1 space-x-4 text-sm">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (

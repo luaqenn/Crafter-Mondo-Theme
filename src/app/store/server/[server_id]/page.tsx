@@ -213,9 +213,9 @@ export default function ServerPage({
                 items={serverCategories || []}
                 renderItem={(category: Category, index) => (
                   <CategoryCard
-                    key={category.id}
+                    key={category.slug}
                     category={{
-                      id: category.id,
+                      id: category.slug,
                       name: category.name,
                       image: category.image || "/images/default-category.png",
                     }}

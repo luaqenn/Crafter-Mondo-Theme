@@ -1,5 +1,5 @@
 import { useApi } from '@/lib/hooks/useApi';
-import { BACKEND_URL, BACKEND_URL_WITH_WEBSITE_ID } from '../constants/base';
+import { BACKEND_URL, BACKEND_URL_WITH_WEBSITE_ID, BACKEND_URL_WITH_WEBSITE_IDV2 } from '../constants/base';
 import { User } from '../types/user';
 
 export interface SignInRequest {
@@ -48,7 +48,7 @@ export interface ResetPasswordResponse {
 }
 
 export const useAuthService = () => {
-    const { post, get } = useApi({ baseUrl: BACKEND_URL_WITH_WEBSITE_ID });
+    const { post, get } = useApi({ baseUrl: BACKEND_URL_WITH_WEBSITE_IDV2 });
 
     const signIn = async (data: SignInRequest): Promise<SignInResponse> => {
         const response = await post<SignInResponse>('/auth/signin', data);

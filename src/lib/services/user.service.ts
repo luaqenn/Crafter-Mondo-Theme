@@ -1,9 +1,9 @@
 import { useApi } from '@/lib/hooks/useApi';
 import { User, WallMessage } from '../types/user';
-import { BACKEND_URL_WITH_WEBSITE_ID } from '../constants/base';
+import { BACKEND_URL_WITH_WEBSITE_IDV2 } from '../constants/base';
 
 export const useUserService = () => {
-    const { get, post, put } = useApi({ baseUrl: BACKEND_URL_WITH_WEBSITE_ID });
+    const { get, post, put } = useApi({ baseUrl: BACKEND_URL_WITH_WEBSITE_IDV2 });
 
     // Tüm kullanıcıları getir
     const getUsers = async (): Promise<User[]> => {

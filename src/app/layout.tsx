@@ -6,12 +6,13 @@ import PWAInstaller from "@/components/pwa-installer";
 import "@/styles/globals.css";
 import { MainLayout } from "@/components/main-layout";
 import { DEFAULT_APPCONFIG } from "@/lib/constants/pwa";
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { AppConfig } from "@/lib/types/app";
 import { CartProvider } from "@/lib/context/cart.context";
 import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
 import { getAppConfigDirect } from "@/lib/services/app-config.service";
 import { StorePreloadManager } from "@/components/store/StorePreloadManager";
+import { MaintenanceProvider } from "@/lib/context/maintenance.context";
 
 async function getAppConfig(): Promise<AppConfig> {
   if (typeof window === "undefined") {
@@ -20,31 +21,31 @@ async function getAppConfig(): Promise<AppConfig> {
   }
   try {
     const fetchOptions: any = {
-      cache: 'no-store'
+      cache: "no-store",
     };
-    
-    console.log('🔍 getAppConfig called, NODE_ENV:', process.env.NODE_ENV);
-    
+
+    console.log("🔍 getAppConfig called, NODE_ENV:", process.env.NODE_ENV);
+
     // Server-side fetch için absolute URL gerekli
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const url = `${baseUrl}/api/app-config`;
-    
-    console.log('🔍 Fetching URL:', url);
-    console.log('🔍 Fetch options:', fetchOptions);
-    
+
+    console.log("🔍 Fetching URL:", url);
+    console.log("🔍 Fetch options:", fetchOptions);
+
     const response = await fetch(url, fetchOptions);
-    console.log('🔍 Response status:', response.status);
-    console.log('🔍 Response ok:', response.ok);
-    
+    console.log("🔍 Response status:", response.status);
+    console.log("🔍 Response ok:", response.ok);
+
     if (!response.ok) {
       throw new Error(`Config API hatası: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    console.log('🔍 Response data:', data);
+    console.log("🔍 Response data:", data);
     return data;
   } catch (error) {
-    console.error('❌ App config fetch error:', error);
+    console.error("❌ App config fetch error:", error);
     // Varsayılan değerler
     return DEFAULT_APPCONFIG;
   }
@@ -70,14 +71,14 @@ export async function generateMetadata(): Promise<Metadata> {
       googleBot: {
         index: true,
         follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
     },
     openGraph: {
-      type: 'website',
-      locale: 'tr_TR',
+      type: "website",
+      locale: "tr_TR",
       url: process.env.NEXT_PUBLIC_BASE_URL,
       title: appConfig.appName,
       description: appConfig.description,
@@ -92,7 +93,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: appConfig.appName,
       description: appConfig.description,
       images: [
@@ -170,7 +171,11 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         {/* Preconnect to external domains */}
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_BACKEND_URL} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://minotar.net" />
         <link rel="preconnect" href="https://api.crafter.net.tr" />
 
@@ -181,15 +186,20 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
 
         {/* Preload critical resources */}
-        {process.env.NODE_ENV === 'production' && (
+        {process.env.NODE_ENV === "production" && (
           <>
-            <link rel="preload" href="/api/manifest" as="fetch" crossOrigin="anonymous" />
+            <link
+              rel="preload"
+              href="/api/manifest"
+              as="fetch"
+              crossOrigin="anonymous"
+            />
             <link rel="preload" href={appConfig.favicon} as="image" />
           </>
         )}
 
         {/* Resource hints */}
-        {process.env.NODE_ENV === 'production' && (
+        {process.env.NODE_ENV === "production" && (
           <>
             <link rel="prefetch" href="/store" />
             <link rel="prefetch" href="/cart" />
@@ -203,7 +213,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         )}
 
         {/* Performance optimizations */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=5"
+        />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
       </head>
       <body>
@@ -211,21 +224,19 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           <PWAProvider initialConfig={appConfig}>
             <WebsiteProvider>
               <AuthProvider>
-                <CartProvider>
-
-                  <MainLayout>{children}</MainLayout>
-                  <PWAInstaller />
-                  <StorePreloadManager />
-
-                </CartProvider>
+                <MaintenanceProvider>
+                  <CartProvider>
+                    <MainLayout>{children}</MainLayout>
+                    <PWAInstaller />
+                    <StorePreloadManager />
+                  </CartProvider>
+                </MaintenanceProvider>
               </AuthProvider>
             </WebsiteProvider>
           </PWAProvider>
         </ThemeProviderWrapper>
       </body>
-      {appConfig.gaId && (
-        <GoogleAnalytics gaId={appConfig.gaId} />
-      )}
+      {appConfig.gaId && <GoogleAnalytics gaId={appConfig.gaId} />}
     </html>
   );
 }

@@ -28,6 +28,7 @@ export async function GET() {
         server_info: website.server_info,
         security: website.security,
         theme: website.theme,
+        maintenance: website.maintenance,
         createdAt: website.createdAt,
         updatedAt: website.updatedAt,
       };
@@ -58,6 +59,7 @@ export async function GET() {
         server_info: website.server_info,
         security: website.security.cf_turnstile ? { cf_turnstile: { site_key: website.security.cf_turnstile.site_key } } : null,
         theme: website.theme,
+        maintenance: website.maintenance,
         createdAt: website.createdAt,
         updatedAt: website.updatedAt,
       };

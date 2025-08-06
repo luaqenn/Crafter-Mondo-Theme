@@ -328,6 +328,7 @@ export interface Website {
   security: Security;
   server_info: ServerInfo | null;
   theme: Theme;
+  maintenance: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

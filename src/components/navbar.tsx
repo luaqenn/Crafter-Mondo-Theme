@@ -35,6 +35,7 @@ import { Avatar } from "./ui/avatar";
 import { useCart } from "@/lib/context/cart.context";
 import { Badge } from "./ui/badge";
 import { Head } from "./ui/head";
+import { IconRenderer } from "@/components/ui/icon-renderer";
 
 // Helper function to format balance as XX.00
 const formatBalance = (balance: number | undefined): string => {
@@ -95,15 +96,7 @@ export function Navbar() {
     }`;
   };
 
-  const navigationItems = [
-    { href: "/", icon: Home, label: "Anasayfa" },
-    { href: "/wallet", icon: CreditCard, label: "Kredi Yükle" },
-    { href: "/store", icon: ShoppingCart, label: "Mağaza" },
-    { href: "/redeem", icon: Ticket, label: "Kod Kullan" },
-    { href: "/forum", icon: MessageSquare, label: "Forum" },
-    { href: "/help", icon: HelpCircle, label: "Yardım" },
-    { href: "/support", icon: LifeBuoy, label: "Destek" },
-  ];
+  const navigationItems = website?.theme.navbar;
 
   const userMenuItems = [
     { href: "/profile", icon: User, label: "Profilim" },
@@ -141,16 +134,16 @@ export function Navbar() {
                 <div className="flex flex-col h-full pt-6">
                   {/* Mobile Navigation */}
                   <nav className="flex flex-col gap-2 flex-1">
-                    {navigationItems.map((item) => {
+                    {navigationItems?.map((item) => {
                       const Icon = item.icon;
                       return (
                         <Link
-                          key={item.href}
-                          href={item.href}
-                          className={getMobileLinkClassName(item.href)}
+                          key={item.url}
+                          href={item.url}
+                          className={getMobileLinkClassName(item.url)}
                         >
-                          <Icon className="h-5 w-5" />
-                          {item.label}
+                          <IconRenderer iconName={item.icon} />
+                          <span>{item.label}</span>
                         </Link>
                       );
                     })}
@@ -251,16 +244,16 @@ export function Navbar() {
 
           {/* Center Navigation - Desktop */}
           <div className="hidden lg:flex items-center justify-between flex-1 space-x-4 text-sm">
-            {navigationItems.map((item) => {
+            {navigationItems?.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  className={getLinkClassName(item.href)}
+                  key={item.url}
+                  href={item.url}
+                  className={getLinkClassName(item.url)}
                 >
-                  <Icon className="mr-2 h-4 w-4" />
-                  {item.label}
+                    <IconRenderer iconName={item.icon} />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}

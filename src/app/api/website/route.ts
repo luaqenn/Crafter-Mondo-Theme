@@ -27,6 +27,7 @@ export async function GET() {
         social_media: website.social_media,
         server_info: website.server_info,
         security: website.security,
+        theme: website.theme,
         createdAt: website.createdAt,
         updatedAt: website.updatedAt,
       };
@@ -56,6 +57,7 @@ export async function GET() {
         social_media: website.social_media,
         server_info: website.server_info,
         security: website.security.cf_turnstile ? { cf_turnstile: { site_key: website.security.cf_turnstile.site_key } } : null,
+        theme: website.theme,
         createdAt: website.createdAt,
         updatedAt: website.updatedAt,
       };

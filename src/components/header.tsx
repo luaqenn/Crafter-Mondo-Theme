@@ -131,7 +131,7 @@ export default function Header() {
         {/* Background Image */}
         <div
           className="absolute top-0 left-0 h-full w-full bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/header-bg.webp')" }}
+          style={{ backgroundImage: `url(${process.env.NEXT_PUBLIC_BACKEND_URL}${website?.theme.header.bannerImage || "/images/header-bg.webp"})` }}
         />
       </div>
 

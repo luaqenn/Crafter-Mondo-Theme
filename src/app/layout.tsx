@@ -85,8 +85,8 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?title=${appConfig.appName}&description=${appConfig.description}&logo=${appConfig.icon192}&brand=${appConfig.appName}`,
-          width: 192,
-          height: 192,
+          width: 1200,
+          height: 630,
           alt: appConfig.appName,
         },
       ],
@@ -98,8 +98,8 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?title=${appConfig.appName}&description=${appConfig.description}&logo=${appConfig.icon192}&brand=${appConfig.appName}`,
-          width: 192,
-          height: 192,
+          width: 1200,
+          height: 630,
           alt: appConfig.appName,
         },
       ],

@@ -18,15 +18,28 @@ export default function HelpCategoryPage() {
   const [items, setItems] = useState<HelpCenterItem[]>([]);
   const [selected, setSelected] = useState<HelpCenterItem | null>(null);
 
+  // categoryId değiştiğinde seçili makaleyi sıfırla
+  useEffect(() => {
+    setSelected(null);
+  }, [categoryId]);
+
   useEffect(() => {
     if (!categoryId) return;
     getCategory({ websiteId: "default", categoryId }).then(setCategory);
     getHelpCenter({ websiteId: "default", query: { categoryId, activeOnly: true } })
       .then(data => {
         setItems(data.items || []);
-        setSelected(data.items?.[0] || null);
       });
   }, [categoryId]);
+
+  // items değiştiğinde ilk makaleyi otomatik seç
+  useEffect(() => {
+    if (items.length > 0) {
+      setSelected(items[0]);
+    } else {
+      setSelected(null);
+    }
+  }, [items]);
 
   return (
     <section className="max-w-5xl mx-auto py-10 px-2 md:px-0">

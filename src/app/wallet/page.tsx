@@ -133,8 +133,8 @@ export default function BalancePage() {
       return;
     }
 
-    if (!userIsLoading && user === undefined) {
-      router.push("/");
+    if (!isAuthenticated || !userIsLoading) {
+      router.push("/auth/sign-in?return=/wallet");
       return;
     }
 

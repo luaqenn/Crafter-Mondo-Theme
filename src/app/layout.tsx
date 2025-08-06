@@ -84,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: appConfig.appName,
       images: [
         {
-          url: appConfig.icon192,
+          url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?title=${appConfig.appName}&description=${appConfig.description}&logo=${appConfig.icon192}&brand=${appConfig.appName}`,
           width: 192,
           height: 192,
           alt: appConfig.appName,
@@ -95,7 +95,14 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: appConfig.appName,
       description: appConfig.description,
-      images: [appConfig.icon192],
+      images: [
+        {
+          url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?title=${appConfig.appName}&description=${appConfig.description}&logo=${appConfig.icon192}&brand=${appConfig.appName}`,
+          width: 192,
+          height: 192,
+          alt: appConfig.appName,
+        },
+      ],
     },
     icons: {
       icon: [

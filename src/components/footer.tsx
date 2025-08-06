@@ -44,7 +44,7 @@ type Props = {
 
 const Footer = ({ server }: Props) => {
   const { website } = useContext(WebsiteContext);
-  console.log(website)
+  
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>(
     {}
   );

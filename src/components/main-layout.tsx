@@ -34,7 +34,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     }).catch(() => setIsSignupsLoading(false));
   }, []);
 
-  if (pathname.includes('auth')) {
+  if (pathname.includes('auth') || pathname.includes('maintenance')) {
     return (children);
   }
 

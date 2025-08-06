@@ -194,17 +194,6 @@ export function Navbar() {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-80 px-0">
                   <div className="flex flex-col h-full">
-                    
-                    {/* Mobile Header */}
-                    <div className="px-6 py-4 border-b">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                          {website?.name?.[0] || "M"}
-                        </div>
-                        <span className="font-semibold text-lg">Menu</span>
-                      </div>
-                    </div>
-
                     {/* Mobile Navigation */}
                     <nav className="flex-1 px-4 py-4">
                       <div className="space-y-2">

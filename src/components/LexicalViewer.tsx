@@ -57,7 +57,7 @@ export default function LexicalViewer({ content, className }: LexicalViewerProps
     };
 
     return (
-      <LexicalComposer initialConfig={initialConfig}>
+      <LexicalComposer initialConfig={initialConfig} key={typeof content === "string" ? content : JSON.stringify(content)}>
         <div className={"prose dark:prose-invert max-w-none " + (className || "") }>
           <RichTextPlugin
             contentEditable={<ContentEditable className="outline-none" readOnly />}

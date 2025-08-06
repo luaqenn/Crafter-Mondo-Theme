@@ -172,6 +172,19 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+.glass-navbar {
+  @apply bg-white/30 dark:bg-gray-900/40 backdrop-blur-2xl border border-cyan-400/20 shadow-lg rounded-2xl;
+  box-shadow: 0 8px 32px 0 rgba(34,211,238,0.15), 0 1.5px 8px 0 rgba(34,211,238,0.10);
+}
+.glass-link {
+  @apply bg-white/10 dark:bg-gray-900/20 backdrop-blur-md border border-cyan-400/10 shadow-md rounded-2xl;
+  transition: box-shadow 0.3s, border 0.3s, background 0.3s;
+}
+.neon-shadow {
+  box-shadow: 0 0 8px 2px #22d3ee99, 0 0 2px 1px #06b6d4cc;
+  border: 1.5px solid #22d3ee99;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

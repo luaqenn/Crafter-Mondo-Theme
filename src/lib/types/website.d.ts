@@ -266,6 +266,18 @@ export interface Security {
   [key: string]: any;
 }
 
+export interface Theme {
+  header: {
+    bannerImage: string;
+  },
+  navbar: {
+    label: string;
+    url: string;
+    icon: string;
+    index: number;
+  }[];
+}
+
 // --- Main Website Interface ---
 
 export interface Website {
@@ -315,6 +327,7 @@ export interface Website {
   forum: Forum;
   security: Security;
   server_info: ServerInfo | null;
+  theme: Theme;
   createdAt: Date;
   updatedAt: Date;
 }

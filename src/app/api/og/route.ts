@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
     const pngBuffer = await svgToPng(svg);
 
     // PNG'yi döndür
-    return new Response(pngBuffer, {
+    return new NextResponse(pngBuffer as any, {
       status: 200,
       headers: {
         'Content-Type': 'image/png',

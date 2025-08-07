@@ -3,9 +3,11 @@
 import { useContext } from "react";
 import { WebsiteContext } from "@/lib/context/website.context";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function Maintenance() {
   const { website } = useContext(WebsiteContext);
+  const { theme, resolvedTheme } = useTheme();
 
   // Eğer website yüklenmemişse loading göster
   if (!website) {
@@ -17,7 +19,7 @@ export default function Maintenance() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center p-4 relative">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.1)_1px,transparent_0)] bg-[length:20px_20px] dark:bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.1)_1px,transparent_0)]"></div>
@@ -94,6 +96,20 @@ export default function Maintenance() {
             </a>
           </div>
         )}
+      </div>
+
+      {/* Powered by Logo - Fixed at bottom */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <a href="https://crafter.net.tr" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">Powered by</span>
+          <Image
+            src={(theme === "system" ? resolvedTheme : theme) === "dark" ? "/images/crafter.png" : "/images/crafter-light.png"}
+            alt="Crafter"
+            width={200}
+            height={200}
+            className="h-8 w-auto"
+          />
+        </a>
       </div>
 
       {/* Animated Background Elements */}

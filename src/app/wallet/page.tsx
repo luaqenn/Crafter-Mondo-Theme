@@ -129,11 +129,7 @@ export default function BalancePage() {
   };
 
   useEffect(() => {
-    if (userIsLoading) {
-      return;
-    }
-
-    if (!isAuthenticated || !userIsLoading) {
+    if (!isAuthenticated && !userIsLoading) {
       router.push("/auth/sign-in?return=/wallet");
       return;
     }

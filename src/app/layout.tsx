@@ -13,6 +13,7 @@ import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
 import { getAppConfigDirect } from "@/lib/services/app-config.service";
 import { StorePreloadManager } from "@/components/store/StorePreloadManager";
 import { MaintenanceProvider } from "@/lib/context/maintenance.context";
+import { Toaster } from "react-hot-toast";
 
 async function getAppConfig(): Promise<AppConfig> {
   if (typeof window === "undefined") {
@@ -229,6 +230,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     <MainLayout>{children}</MainLayout>
                     <PWAInstaller />
                     <StorePreloadManager />
+                    <Toaster />
                   </CartProvider>
                 </MaintenanceProvider>
               </AuthProvider>

@@ -13,6 +13,8 @@ import {
   ChevronDown,
   Bell,
   Settings,
+  Search,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -33,6 +35,8 @@ import { useCart } from "@/lib/context/cart.context";
 import { Badge } from "./ui/badge";
 import { Head } from "./ui/head";
 import { IconRenderer } from "@/components/ui/icon-renderer";
+import { Input } from "./ui/input";
+import Image from "next/image";
 
 const formatBalance = (balance: number | undefined): string => {
   if (balance === undefined || balance === null) return "0.00";
@@ -46,23 +50,33 @@ export function Navbar() {
   const { website } = useContext(WebsiteContext);
   const { cart } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const scrollY = window.scrollY;
+      const headerHeight = window.innerHeight; // Header tam ekran yüksekliği
+      
+      // Header görünür mü kontrol et
+      setIsHeaderVisible(scrollY < headerHeight);
+      
+      // Navbar'ın scroll durumunu kontrol et
+      setIsScrolled(scrollY > 20);
     };
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const getLinkClassName = (path: string) => {
     const isActive = path === "/" ? pathname === "/" : pathname.startsWith(path) && path !== "/";
-    return `relative px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center gap-2 ${
+    return `relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2 group ${
       isActive 
-        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" 
-        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white"
+        ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-500/25" 
+        : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800/50 dark:hover:to-gray-700/50 hover:text-gray-900 dark:hover:text-white hover:shadow-md"
     }`;
   };
 
@@ -77,8 +91,12 @@ export function Navbar() {
 
   return (
     <header 
-      className={`sticky top-0 z-50 w-full border-b bg-white/80 dark:bg-gray-950/80 backdrop-blur-md transition-all duration-300 ${
-        isScrolled ? 'shadow-sm border-gray-200/60 dark:border-gray-800/60' : 'border-transparent'
+      className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 ${
+        isHeaderVisible 
+          ? 'bg-transparent' 
+          : isScrolled 
+            ? 'bg-black/95 dark:bg-black/95 backdrop-blur-2xl border border-gray-800/60 dark:border-gray-800/60 shadow-xl shadow-black/20 rounded-2xl' 
+            : 'bg-gradient-to-r from-gray-900/90 via-black/90 to-gray-900/90 dark:from-black/90 dark:via-gray-900/90 dark:to-black/90 backdrop-blur-2xl rounded-2xl border border-gray-800/20 dark:border-gray-800/20'
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,35 +104,55 @@ export function Navbar() {
           
           {/* Logo/Brand - Sol */}
           <div className="flex items-center gap-8">
+             {/* Desktop Navigation */}
+             <nav className="hidden lg:flex items-center space-x-2">
+               {navigationItems?.map((item) => (
+                 <Link key={item.url} href={item.url} className={getLinkClassName(item.url)}>
+                   <IconRenderer iconName={item.icon} className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                   <span>{item.label}</span>
+                 </Link>
+               ))}
+             </nav>
+           </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-1">
-              {navigationItems?.map((item) => (
-                <Link key={item.url} href={item.url} className={getLinkClassName(item.url)}>
-                  <IconRenderer iconName={item.icon} className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </nav>
+          {/* Orta - Search Bar */}
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Ara..."
+                className="pl-10 pr-4 py-2 bg-white/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 rounded-xl backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-300"
+              />
+            </div>
           </div>
 
           {/* Sağ taraf - Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             
+            {/* Mobile Search */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="md:hidden p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              <Search className="w-5 h-5" />
+            </Button>
+
             {/* Notification Bell */}
-            <Button variant="ghost" size="sm" className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-              <Bell className="w-5 h-5" />
-              {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
+            <Button variant="ghost" size="sm" className="relative p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 group">
+              <Bell className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
             </Button>
 
             {/* Cart */}
             <Link href="/cart">
-              <Button variant="ghost" size="sm" className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                <ShoppingCart className="w-5 h-5" />
+              <Button variant="ghost" size="sm" className="relative p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 group">
+                <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
                 {totalItems > 0 && (
                   <Badge 
                     variant="secondary" 
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-semibold bg-blue-600 text-white"
+                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-semibold bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg"
                   >
                     {totalItems > 9 ? '9+' : totalItems}
                   </Badge>
@@ -126,8 +164,11 @@ export function Navbar() {
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 px-2 py-1 h-auto rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <Head username={user?.username || "steve"} size={32} className="w-8 h-8 rounded-lg" />
+                  <Button variant="ghost" className="flex items-center gap-2 px-3 py-2 h-auto rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 group">
+                    <div className="relative">
+                      <Head username={user?.username || "steve"} size={32} className="w-8 h-8 rounded-xl ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all duration-300" />
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                    </div>
                     <div className="hidden md:block text-left">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {user?.username}
@@ -137,34 +178,41 @@ export function Navbar() {
                         {formatBalance(user?.balance)} {website?.currency}
                       </div>
                     </div>
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                    <ChevronDown className="w-4 h-4 text-gray-500 group-hover:rotate-180 transition-transform duration-300" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 mt-2">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{user?.username}</p>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <CoinsIcon className="w-3 h-3" />
-                        {formatBalance(user?.balance)} {website?.currency}
-                      </p>
+                <DropdownMenuContent align="end" className="w-64 mt-2 p-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl">
+                  <DropdownMenuLabel className="p-3">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center gap-3">
+                        <Head username={user?.username || "steve"} size={48} className="w-12 h-12 rounded-xl ring-2 ring-blue-500/20" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.username}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                            <CoinsIcon className="w-3 h-3" />
+                            {formatBalance(user?.balance)} {website?.currency}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {userMenuItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link key={item.href} href={item.href}>
-                        <DropdownMenuItem>
-                          <Icon className="mr-2 h-4 w-4" />
-                          {item.label}
-                        </DropdownMenuItem>
-                      </Link>
-                    );
-                  })}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuSeparator className="bg-gray-200/50 dark:bg-gray-700/50" />
+                  <div className="p-1">
+                    {userMenuItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={item.href} href={item.href}>
+                          <DropdownMenuItem className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                            <Icon className="w-4 h-4 text-gray-500" />
+                            {item.label}
+                          </DropdownMenuItem>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                  <DropdownMenuSeparator className="bg-gray-200/50 dark:bg-gray-700/50" />
+                  <DropdownMenuItem onClick={signOut} className="flex items-center gap-3 p-3 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
+                    <LogOut className="w-4 h-4" />
                     Çıkış Yap
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -172,12 +220,12 @@ export function Navbar() {
             ) : (
               <div className="flex items-center gap-2">
                 <Link href="/auth/sign-in">
-                  <Button variant="ghost" size="sm" className="text-sm">
+                  <Button variant="ghost" size="sm" className="text-sm rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50">
                     Giriş Yap
                   </Button>
                 </Link>
                 <Link href="/auth/sign-up">
-                  <Button size="sm" className="text-sm bg-blue-600 hover:bg-blue-700">
+                  <Button size="sm" className="text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl shadow-lg shadow-blue-500/25">
                     Kayıt Ol
                   </Button>
                 </Link>
@@ -188,12 +236,25 @@ export function Navbar() {
             <div className="lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-2">
+                  <Button variant="ghost" size="sm" className="p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50">
                     <Menu className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-80 px-0">
+                <SheetContent side="right" className="w-80 px-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
                   <div className="flex flex-col h-full">
+                    {/* Mobile Search */}
+                    {isSearchOpen && (
+                      <div className="p-4 border-b border-gray-200/50 dark:border-gray-700/50">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input
+                            placeholder="Ara..."
+                            className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     {/* Mobile Navigation */}
                     <nav className="flex-1 px-4 py-4">
                       <div className="space-y-2">
@@ -201,9 +262,9 @@ export function Navbar() {
                           <Link 
                             key={item.url} 
                             href={item.url} 
-                            className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                            className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
                               pathname === item.url 
-                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-600 dark:text-blue-400 shadow-lg"
                                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                             }`}
                           >
@@ -216,9 +277,9 @@ export function Navbar() {
                         
                         <Link 
                           href="/cart"
-                          className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
                             pathname === "/cart"
-                              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                              ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-600 dark:text-blue-400 shadow-lg"
                               : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                           }`}
                         >
@@ -228,7 +289,7 @@ export function Navbar() {
                               {totalItems > 0 && (
                                 <Badge 
                                   variant="secondary" 
-                                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs bg-blue-600 text-white"
+                                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white"
                                 >
                                   {totalItems}
                                 </Badge>
@@ -241,14 +302,17 @@ export function Navbar() {
                     </nav>
 
                     {/* Mobile User Section */}
-                    <div className="px-4 py-4 border-t">
+                    <div className="px-4 py-4 border-t border-gray-200/50 dark:border-gray-700/50">
                       {isAuthenticated ? (
                         <div className="space-y-4">
                           {/* User Info */}
-                          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <Head username={user?.username || "steve"} size={40} className="w-10 h-10 rounded-lg" />
+                          <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl">
+                            <div className="relative">
+                              <Head username={user?.username || "steve"} size={40} className="w-10 h-10 rounded-xl ring-2 ring-blue-500/20" />
+                              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                            </div>
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                 {user?.username}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
@@ -264,7 +328,7 @@ export function Navbar() {
                               const Icon = item.icon;
                               return (
                                 <Link key={item.href} href={item.href}>
-                                  <div className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200">
                                     <Icon className="w-4 h-4" />
                                     {item.label}
                                   </div>
@@ -277,7 +341,7 @@ export function Navbar() {
                             onClick={signOut}
                             variant="outline" 
                             size="sm" 
-                            className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                            className="w-full text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl"
                           >
                             <LogOut className="mr-2 h-4 w-4" />
                             Çıkış Yap
@@ -285,9 +349,9 @@ export function Navbar() {
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl">
                             <UserIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                            <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
                               Giriş Yapın
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -296,12 +360,12 @@ export function Navbar() {
                           </div>
                           <div className="flex gap-2">
                             <Link href="/auth/sign-in" className="flex-1">
-                              <Button variant="outline" size="sm" className="w-full">
+                              <Button variant="outline" size="sm" className="w-full rounded-xl">
                                 Giriş Yap
                               </Button>
                             </Link>
                             <Link href="/auth/sign-up" className="flex-1">
-                              <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
+                              <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl">
                                 Kayıt Ol
                               </Button>
                             </Link>

@@ -1,5 +1,6 @@
 
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Chakra+Petch:wght@300;400;500;600;700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -191,5 +192,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .font-minecraft {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   }
 } 

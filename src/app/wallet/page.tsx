@@ -299,10 +299,21 @@ export default function BalancePage() {
       // Initiate payment
       const paymentResponse = await initiatePayment(paymentData);
 
-      if (paymentResponse.success && paymentResponse.type === "iframe") {
+      if (paymentResponse.success) {
+        if (paymentResponse.type === "iframe") {
         setPaymentIframeHtml(paymentResponse.iframeHtml);
         setPaymentId(paymentResponse.payment_id);
         setPaymentDialogOpen(true);
+        } else if (paymentResponse.type === "redirect") {
+          window.location.href = paymentResponse.redirectUrl;
+        } else {
+          withReactContent(Swal).fire({
+            title: "Ödeme Hatası!",
+            text: "Ödeme işlemi başlatılamadı. Lütfen tekrar deneyin.",
+            icon: "error",
+            confirmButtonText: "Tamamdır.",
+          });
+        }
       } else {
         withReactContent(Swal).fire({
           title: "Ödeme Hatası!",

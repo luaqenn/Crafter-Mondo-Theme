@@ -125,92 +125,10 @@ export function lazyLoad(
 }
 
 /**
- * Development ortamında cache temizleme
- */
-export const clearDevelopmentCache = async (): Promise<void> => {
-  if (process.env.NODE_ENV === 'development') {
-    try {
-      // Browser cache'ini temizle
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(
-          cacheNames.map(cacheName => caches.delete(cacheName))
-        );
-      }
-
-      // Service Worker cache'ini temizle
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: "CLEAR_CACHE",
-        });
-      }
-
-      // Local Storage'ı temizle (opsiyonel)
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-
-    } catch (error) {
-      console.error('Error clearing development cache:', error);
-    }
-  }
-};
-
-// Hot reload sonrası otomatik cache temizleme ve component refresh
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-  // Vite veya Next.js 13+ için import.meta.hot kullanımı
-  if (typeof import.meta !== 'undefined' && import.meta.hot) {
-    import.meta.hot.accept(() => {
-      clearDevelopmentCache();
-      setTimeout(() => {
-        if (typeof forceComponentRefresh === 'function') {
-          forceComponentRefresh();
-        }
-      }, 100);
-    });
-  }
-  window.addEventListener('beforeunload', clearDevelopmentCache);
-}
-
-/**
- * Component'i zorla yenileme
- */
-export const forceComponentRefresh = (): void => {
-  if (process.env.NODE_ENV === 'development') {
-    // Sayfayı yenile
-    window.location.reload();
-  }
-};
-
-/**
- * Hot reload sonrası cache temizleme
- */
-export const handleHotReload = (): void => {
-  if (process.env.NODE_ENV === 'development') {
-    // Hot reload sonrası cache temizle
-    clearDevelopmentCache();
-    
-    // Component'leri yenile
-    setTimeout(() => {
-      forceComponentRefresh();
-    }, 100);
-  }
-};
-
-/**
  * Development ortamında cache kontrolü
  */
 export const isDevelopmentCacheEnabled = (): boolean => {
   return process.env.NODE_ENV === 'development';
-};
-
-/**
- * Cache temizleme ve yenileme
- */
-export const refreshAndClearCache = async (): Promise<void> => {
-  await clearDevelopmentCache();
-  forceComponentRefresh();
 };
 
 // Lexical JSON'dan düz metin çıkaran yardımcı fonksiyon

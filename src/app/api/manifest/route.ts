@@ -37,24 +37,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     };
 
     // Manifest'i JSON olarak döndür
-    return NextResponse.json(manifest, {
-      headers: {
-        "Cache-Control": process.env.NODE_ENV === 'development'
-          ? "no-cache, no-store, must-revalidate"
-          : "public, max-age=3600, stale-while-revalidate=86400",
-      },
-    });
+    return NextResponse.json(manifest);
   } catch (error) {
 
     // Hata durumunda varsayılan manifest döndür
     const defaultManifest: PWAManifest = DEFAULT_MANIFEST;
 
-    return NextResponse.json(defaultManifest, {
-      headers: {
-        "Cache-Control": process.env.NODE_ENV === 'development'
-          ? "no-cache, no-store, must-revalidate"
-          : "public, max-age=300",
-      },
-    });
+    return NextResponse.json(defaultManifest);
   }
 }

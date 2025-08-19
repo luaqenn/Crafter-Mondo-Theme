@@ -20,32 +20,19 @@ async function getAppConfig(): Promise<AppConfig> {
     return getAppConfigDirect();
   }
   try {
-    const fetchOptions: any = {
-      cache: "no-store",
-    };
-
-    console.log("🔍 getAppConfig called, NODE_ENV:", process.env.NODE_ENV);
-
     // Server-side fetch için absolute URL gerekli
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const url = `${baseUrl}/api/app-config`;
 
-    console.log("🔍 Fetching URL:", url);
-    console.log("🔍 Fetch options:", fetchOptions);
-
-    const response = await fetch(url, fetchOptions);
-    console.log("🔍 Response status:", response.status);
-    console.log("🔍 Response ok:", response.ok);
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Config API hatası: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("🔍 Response data:", data);
     return data;
   } catch (error) {
-    console.error("❌ App config fetch error:", error);
     // Varsayılan değerler
     return DEFAULT_APPCONFIG;
   }

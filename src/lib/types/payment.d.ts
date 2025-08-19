@@ -30,8 +30,9 @@ export interface InitiatePaymentData {
 
 export interface InitiatePaymentResponse {
   success: boolean;
-  type: "iframe";
+  type: "iframe" | "redirect";
   iframeHtml: string;
+  redirectUrl: string;
   payment_id: string;
 }
 

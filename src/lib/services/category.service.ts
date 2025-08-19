@@ -18,6 +18,6 @@ export const useCategoryService = () => {
 
     return {
         getCategories,
-        getCategory
+        getCategory,
     };
 }; 

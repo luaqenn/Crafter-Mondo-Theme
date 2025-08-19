@@ -43,7 +43,6 @@ const nextConfig: NextConfig = {
       }
     ],
     // Next.js 15'te formats artık desteklenmiyor, loader seviyesinde yapılıyor
-    minimumCacheTTL: process.env.NODE_ENV === 'development' ? 0 : 31536000, // 1 yıl
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Optimize edilmiş boyutlar
@@ -69,12 +68,6 @@ const nextConfig: NextConfig = {
       'clsx',
       'tailwind-merge'
     ],
-
-    // Cache ayarları
-    staleTimes: {
-      dynamic: process.env.NODE_ENV === 'development' ? 0 : 300, // 5 dakika
-      static: process.env.NODE_ENV === 'development' ? 0 : 31536000, // 1 yıl
-    },
 
     // React 19 desteği
     reactCompiler: process.env.NODE_ENV === 'production',
@@ -106,34 +99,6 @@ const nextConfig: NextConfig = {
         chunks: 'all',
         minSize: 20000,
         maxSize: 244000,
-        cacheGroups: {
-          framework: {
-            chunks: 'all',
-            name: 'framework',
-            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
-            priority: 40,
-            enforce: true,
-          },
-          lib: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'lib',
-            priority: 30,
-            minChunks: 1,
-            reuseExistingChunk: true,
-          },
-          commons: {
-            name: 'commons',
-            minChunks: 2,
-            priority: 20,
-            reuseExistingChunk: true,
-          },
-          shared: {
-            name: 'shared',
-            minChunks: 2,
-            priority: 10,
-            reuseExistingChunk: true,
-          },
-        },
       };
     }
 
@@ -161,164 +126,6 @@ const nextConfig: NextConfig = {
     };
 
     return config;
-  },
-
-  // Headers for performance and security
-  async headers() {
-    const securityHeaders = [
-      {
-        key: 'X-Content-Type-Options',
-        value: 'nosniff',
-      },
-      {
-        key: 'X-Frame-Options',
-        value: 'DENY',
-      },
-      {
-        key: 'X-XSS-Protection',
-        value: '1; mode=block',
-      },
-      {
-        key: 'Referrer-Policy',
-        value: 'strict-origin-when-cross-origin',
-      },
-      {
-        key: 'Permissions-Policy',
-        value: 'camera=(), microphone=(), geolocation=()',
-      },
-      {
-        key: 'X-DNS-Prefetch-Control',
-        value: 'on',
-      },
-    ];
-
-    // Development'ta tüm route'lar için no-cache header'ı zorunlu
-    if (process.env.NODE_ENV === 'development') {
-      return [
-        {
-          source: '/(.*)',
-          headers: [
-            ...securityHeaders,
-            {
-              key: 'Cache-Control',
-              value: 'no-cache, no-store, must-revalidate',
-            },
-          ],
-        },
-        {
-          source: '/_next/static/(.*)',
-          headers: [
-            {
-              key: 'Cache-Control',
-              value: 'no-cache, no-store, must-revalidate',
-            },
-          ],
-        },
-        {
-          source: '/_next/image(.*)',
-          headers: [
-            {
-              key: 'Cache-Control',
-              value: 'no-cache, no-store, must-revalidate',
-            },
-          ],
-        },
-        {
-          source: '/images/(.*)',
-          headers: [
-            {
-              key: 'Cache-Control',
-              value: 'no-cache, no-store, must-revalidate',
-            },
-          ],
-        },
-        {
-          source: '/api/(.*)',
-          headers: [
-            {
-              key: 'Cache-Control',
-              value: 'no-cache, no-store, must-revalidate',
-            },
-          ],
-        },
-        {
-          source: '/fonts/(.*)',
-          headers: [
-            {
-              key: 'Cache-Control',
-              value: 'no-cache, no-store, must-revalidate',
-            },
-          ],
-        },
-      ];
-    }
-
-    const cacheHeaders = process.env.NODE_ENV === 'production'
-      ? [
-        {
-          key: 'Cache-Control',
-          value: 'public, max-age=31536000, stale-while-revalidate=86400',
-        },
-      ]
-      : [
-        {
-          key: 'Cache-Control',
-          value: 'no-cache, no-store, must-revalidate',
-        },
-      ];
-
-    return [
-      {
-        source: '/(.*)',
-        headers: [...securityHeaders, ...cacheHeaders],
-      },
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/_next/image(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, stale-while-revalidate=86400',
-          },
-        ],
-      },
-      {
-        source: '/images/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, stale-while-revalidate=86400',
-          },
-        ],
-      },
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400',
-          },
-        ],
-      },
-      // Font optimizasyonu
-      {
-        source: '/fonts/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-    ];
   },
 
   // Redirects

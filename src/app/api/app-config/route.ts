@@ -12,22 +12,10 @@ export async function GET(
   
   try {
     const appConfig = await getAppConfigDirect();
-    return NextResponse.json(appConfig, {
-      headers: {
-        "Cache-Control": process.env.NODE_ENV === 'development'
-          ? "no-cache, no-store, must-revalidate"
-          : "public, max-age=1800, stale-while-revalidate=3600",
-      },
-    });
+    return NextResponse.json(appConfig);
   } catch (error) {
     console.error('❌ API app-config error:', error);
     // Hata durumunda varsayılan değerler döndür
-    return NextResponse.json(await getAppConfigDirect(), {
-      headers: {
-        "Cache-Control": process.env.NODE_ENV === 'development'
-          ? "no-cache, no-store, must-revalidate"
-          : "public, max-age=300",
-      },
-    });
+    return NextResponse.json(await getAppConfigDirect());
   }
 }
